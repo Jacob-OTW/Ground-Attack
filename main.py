@@ -1,12 +1,12 @@
-import math
-
 import pygame
 import sys
 import time
+import math
 
 from settings import *
 
 from player_obj import player_group, play
+from bullet_obj import bullet_group
 
 
 def HandleKeys():
@@ -33,13 +33,15 @@ def main():
         last_time = time.time()
         # Update
         player_group.update()
+        bullet_group.update()
         HandleKeys()
 
         # Visual
         screen.fill((97, 201, 207))
+        bullet_group.draw(screen)
         player_group.draw(screen)
 
-        text2 = score_font.render(f"a:{round(play.angle)} cos:{math.cos(play.angle / (360 / math.pi * 2))}", True, (255, 255, 255))
+        text2 = score_font.render(f"", True, (255, 255, 255))
         screen.blit(text2, (100, 150))
 
         # Refresh

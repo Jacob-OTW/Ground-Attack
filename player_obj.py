@@ -2,6 +2,7 @@ import pygame
 import math
 
 from settings import *
+from bullet_obj import bullet_group, Bullet
 
 
 def dir_to(mp, tp):
@@ -28,33 +29,49 @@ class Player(pygame.sprite.Sprite):
         self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32))
         self.image = self.stored
         self.rect = self.image.get_rect(left=0, top=SCREEN_HEIGHT / 8)
+        self.pos = self.rect
         self.going_right = True
         self.angle = 0
         self.speed = 4
         self.m = 0.0
 
     def update(self):
+        self.move()
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            bullet_group.add(Bullet(self.rect.center, self.angle))
+
+    def move(self):
         if self.going_right:
-            self.rect.x += self.speed
-            self.rect.y -= math.sin(self.angle / Convert) * 2.5
             if self.rect.right >= SCREEN_WIDTH:
                 self.going_right = False
-            if pygame.mouse.get_pos()[0] > self.rect.x:
-                self.angle = dir_to(self.rect, pygame.mouse.get_pos())
+                self.angle = 270
+                self.stored = pygame.transform.flip(pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32)), False, True)
+            self.pos = (self.pos[0] + 2, self.pos[1])
+            a = dir_to(self.rect.center, pygame.mouse.get_pos())
+            if 10 < a < 170:
+                self.angle = a
             else:
-                self.angle = 0
-            self.image = pygame.transform.rotate(self.stored, self.angle - 90)
+                self.angle = 90
+            b = 2 * math.cos(self.angle / (360 / (math.pi * 2)))
+            if not self.rect.top - b < 0:
+                self.pos = (self.pos[0], self.pos[1] + b)
         else:
-            self.rect.x += self.speed * -1
             if self.rect.left <= 0:
                 self.going_right = True
-            if pygame.mouse.get_pos()[0] < self.rect.x:
-                self.angle = dir_to(self.rect, pygame.mouse.get_pos())
+                self.angle = 90
+                self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32))
+            self.pos = (self.pos[0] - 2, self.pos[1])
+            a = dir_to(self.rect.center, pygame.mouse.get_pos())
+            if 190 < a < 350:
+                self.angle = a
             else:
-                self.angle = 180
-            self.image = pygame.transform.flip(self.stored, False, True)
-            self.image = pygame.transform.rotate(self.image, self.angle - 90)
-
+                self.angle = 270
+            b = 2 * math.cos(self.angle / (360 / (math.pi * 2)))
+            if not self.rect.top - b < 0:
+                self.pos = (self.pos[0], self.pos[1] + b)
+        self.image = pygame.transform.rotate(self.stored, self.angle - 90)
+        self.rect = self.image.get_rect(center=self.pos)
 
 player_group = pygame.sprite.GroupSingle()
 play = Player()
