@@ -1,8 +1,8 @@
 import pygame
 import math
-
 from settings import *
-from bullet_obj import bullet_group, Bullet
+from effects import Smoke
+from projectiles import projectile_group, Bullet
 
 
 def dir_to(mp, tp):
@@ -38,7 +38,11 @@ class Player(pygame.sprite.Sprite):
         self.move()
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
-            bullet_group.add(Bullet(self.rect.center, self.angle))
+            con = 360 / (math.pi * 2)
+            p = self.rect.center + pygame.math.Vector2(10, 0).rotate(self.angle - 90)
+            print(self.angle)
+            projectile_group.add(Bullet(p, self.angle))
+            Smoke.add_smoke(p, pygame.math.Vector2((-3*math.sin(self.angle / con), -3*math.cos(self.angle / con))))
 
     def move(self):
         if self.going_right:
