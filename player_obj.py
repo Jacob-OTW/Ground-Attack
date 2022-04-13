@@ -14,7 +14,6 @@ def dir_to(mp, tp):
         v = (math.atan(x / y)) * 57.29577951
     else:
         v = math.atan(x / y) * 57.29577951 + 180
-    # v = round(v)
     while v > 360 or v < 0:
         if v > 360:
             v -= 360
@@ -46,7 +45,9 @@ class Player(pygame.sprite.Sprite):
             if self.rect.right >= SCREEN_WIDTH:
                 self.going_right = False
                 self.angle = 270
-                self.stored = pygame.transform.flip(pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32)), False, True)
+                self.stored = pygame.transform.flip(
+                    pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32)), False,
+                    True)
             self.pos = (self.pos[0] + 2, self.pos[1])
             a = dir_to(self.rect.center, pygame.mouse.get_pos())
             if 10 < a < 170:
@@ -60,7 +61,8 @@ class Player(pygame.sprite.Sprite):
             if self.rect.left <= 0:
                 self.going_right = True
                 self.angle = 90
-                self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32))
+                self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(),
+                                                     (100, 32))
             self.pos = (self.pos[0] - 2, self.pos[1])
             a = dir_to(self.rect.center, pygame.mouse.get_pos())
             if 190 < a < 350:
@@ -72,6 +74,7 @@ class Player(pygame.sprite.Sprite):
                 self.pos = (self.pos[0], self.pos[1] + b)
         self.image = pygame.transform.rotate(self.stored, self.angle - 90)
         self.rect = self.image.get_rect(center=self.pos)
+
 
 player_group = pygame.sprite.GroupSingle()
 play = Player()

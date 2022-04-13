@@ -7,6 +7,7 @@ from settings import *
 
 from player_obj import player_group, play
 from bullet_obj import bullet_group
+from vehicle_obj import vehicle_group
 
 
 def HandleKeys():
@@ -34,14 +35,16 @@ def main():
         # Update
         player_group.update()
         bullet_group.update()
+        vehicle_group.update()
         HandleKeys()
 
         # Visual
         screen.fill((97, 201, 207))
         bullet_group.draw(screen)
+        vehicle_group.draw(screen)
         player_group.draw(screen)
 
-        text2 = score_font.render(f"", True, (255, 255, 255))
+        text2 = score_font.render(f"{len(bullet_group.sprites())}", True, (255, 255, 255))
         screen.blit(text2, (100, 150))
 
         # Refresh
