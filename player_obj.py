@@ -5,30 +5,13 @@ from effects import Smoke
 from projectiles import projectile_group, Bullet
 
 
-def dir_to(mp, tp):
-    x = tp[0] - mp[0]
-    y = tp[1] - mp[1]
-    if y == 0:
-        return 90 if x > 0 else 270
-    if y > 0:
-        v = (math.atan(x / y)) * 57.29577951
-    else:
-        v = math.atan(x / y) * 57.29577951 + 180
-    while v > 360 or v < 0:
-        if v > 360:
-            v -= 360
-        if v < 0:
-            v += 360
-    return v
-
-
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32))
         self.image = self.stored
         self.rect = self.image.get_rect(left=0, top=SCREEN_HEIGHT / 8)
-        self.pos = self.rect
+        self.pos = pygame.math.Vector2((self.rect.x, self.rect.y))
         self.going_right = True
         self.angle = 0
         self.speed = 4
@@ -38,45 +21,49 @@ class Player(pygame.sprite.Sprite):
         self.move()
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
-            con = 360 / (math.pi * 2)
-            p = self.rect.center + pygame.math.Vector2(10, 0).rotate(self.angle - 90)
-            print(self.angle)
-            projectile_group.add(Bullet(p, self.angle))
-            Smoke.add_smoke(p, pygame.math.Vector2((-3*math.sin(self.angle / con), -3*math.cos(self.angle / con))))
+            self.shoot()
+
+    def shoot(self):
+        v = pygame.math.Vector2((40, -2.5 if self.going_right else 2.5)).rotate(self.angle)
+        x = self.rect.centerx + v[0]
+        y = self.rect.centery - v[1]
+        p = (x, y)
+        projectile_group.add(Bullet(p, self.angle))
+        Smoke.add_smoke(p, pygame.math.Vector2(-3, 0).rotate(self.angle))
 
     def move(self):
         if self.going_right:
             if self.rect.right >= SCREEN_WIDTH:
                 self.going_right = False
-                self.angle = 270
+                self.angle = 180
                 self.stored = pygame.transform.flip(
                     pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32)), False,
                     True)
-            self.pos = (self.pos[0] + 2, self.pos[1])
-            a = dir_to(self.rect.center, pygame.mouse.get_pos())
-            if 10 < a < 170:
-                self.angle = a
+            self.pos += pygame.math.Vector2((2, 0))
+            d = dir_to(self.rect.center, pygame.mouse.get_pos())
+            if d < 80 or d > 280:
+                self.angle = d
             else:
-                self.angle = 90
-            b = 2 * math.cos(self.angle / (360 / (math.pi * 2)))
+                self.angle = 0
+            b = -2 * math.sin(math.radians(self.angle))
             if not self.rect.top - b < 0:
-                self.pos = (self.pos[0], self.pos[1] + b)
+                self.pos[1] += b
         else:
             if self.rect.left <= 0:
                 self.going_right = True
-                self.angle = 90
+                self.angle = 0
                 self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(),
                                                      (100, 32))
-            self.pos = (self.pos[0] - 2, self.pos[1])
+            self.pos -= pygame.math.Vector2((2, 0))
             a = dir_to(self.rect.center, pygame.mouse.get_pos())
-            if 190 < a < 350:
+            if 100 < a < 260:
                 self.angle = a
             else:
-                self.angle = 270
-            b = 2 * math.cos(self.angle / (360 / (math.pi * 2)))
+                self.angle = 180
+            b = -2 * math.sin(math.radians(self.angle))
             if not self.rect.top - b < 0:
-                self.pos = (self.pos[0], self.pos[1] + b)
-        self.image = pygame.transform.rotate(self.stored, self.angle - 90)
+                self.pos[1] += b
+        self.image = pygame.transform.rotate(self.stored, self.angle)
         self.rect = self.image.get_rect(center=self.pos)
 
 

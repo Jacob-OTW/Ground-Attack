@@ -33,7 +33,7 @@ class Smoke(pygame.sprite.Sprite):
     def __init__(self, pos, m_vec=None):
         super().__init__()
         self.image = pygame.transform.scale(pygame.image.load('Assets/smoke.png').convert_alpha(), (20, 20))
-        self.pos = pos
+        self.pos = pygame.math.Vector2(pos)
         self.rect = self.image.get_rect(center=self.pos)
         self.opacity = 255
         self.fall_speed = 0.3
@@ -41,10 +41,11 @@ class Smoke(pygame.sprite.Sprite):
         self.m_vec = m_vec
 
     def update(self):
-        self.pos = (self.pos[0], self.pos[1] + self.fall_speed)
+        self.pos[1] += self.fall_speed
         self.pos += self.vec
         if self.m_vec:
-            self.pos += pygame.math.Vector2(self.m_vec)
+            self.pos[0] += self.m_vec[0]
+            self.pos[1] -= self.m_vec[1]
         self.rect.center = self.pos
         self.image.set_alpha(self.opacity)
         self.opacity -= 5

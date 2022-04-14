@@ -44,8 +44,8 @@ def main():
         screen.fill((97, 201, 207))
         projectile_group.draw(screen)
         vehicle_group.draw(screen)
-        effect_group.draw(screen)
         player_group.draw(screen)
+        effect_group.draw(screen)
 
         text2 = score_font.render(f"{len(projectile_group.sprites())}", True, (255, 255, 255))
         screen.blit(text2, (100, 150))

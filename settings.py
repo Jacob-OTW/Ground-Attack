@@ -9,4 +9,10 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 SCORE = 0
 LIVES = 3
 
-Convert = 360 / math.pi*2
+
+def dir_to(mp, tp):
+    dx = tp[0] - mp[0]
+    dy = tp[1] - mp[1]
+    rads = math.atan2(-dy, dx)
+    rads %= 2 * math.pi
+    return math.degrees(rads)
