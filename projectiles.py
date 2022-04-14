@@ -3,12 +3,13 @@ import math
 import random
 
 from settings import *
+from effects import Explosion
 
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, pos, angle):
         super().__init__()
-        self.image = pygame.transform.rotozoom(pygame.image.load('Assets/bullet.png'), angle, 0.1)
+        self.image = pygame.transform.rotozoom(pygame.image.load('Assets/bullet.png').convert_alpha(), angle, 0.1)
         self.image.fill('Black')
         self.rect = self.image.get_rect(center=pos)
         self.pos = pygame.math.Vector2(pos)
@@ -20,7 +21,7 @@ class Bullet(pygame.sprite.Sprite):
         self.pos[0] += self.vec[0]
         self.pos[1] -= self.vec[1]
         self.rect.center = self.pos
-        if self.rect.x < 0 or self.rect.x > SCREEN_WIDTH or self.rect.y < 0 or self.rect.y > SCREEN_HEIGHT:
+        if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH or self.rect.bottom < 0 or self.rect.top > SCREEN_HEIGHT:
             self.kill()
 
 
@@ -48,8 +49,16 @@ class Bomb(pygame.sprite.Sprite):
             self.pos[1] -= v[1]
             if self.angle <= 270:
                 self.angle += 0.3
+        if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH or self.rect.bottom < 0 or self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+        if self.rect.bottom >= SCREEN_HEIGHT:
+            self.explode()
         self.image = pygame.transform.rotate(self.stored, self.angle)
         self.rect = self.image.get_rect(center=self.pos)
+
+    def explode(self):
+        Explosion.add_explosion(self.rect.midbottom)
+        self.kill()
 
 
 projectile_group = pygame.sprite.Group()

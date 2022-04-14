@@ -1,5 +1,6 @@
 import pygame
 import math
+import time
 
 SCREEN_WIDTH = 1230
 SCREEN_HEIGHT = 930
@@ -16,3 +17,7 @@ def dir_to(mp, tp):
     rads = math.atan2(-dy, dx)
     rads %= 2 * math.pi
     return math.degrees(rads)
+
+
+def dis_to(mp, tp):
+    return math.hypot(mp[0] - tp[0], mp[1] - tp[1])

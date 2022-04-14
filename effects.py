@@ -4,18 +4,22 @@ from settings import *
 
 
 class Explosion(pygame.sprite.Sprite):
+    @classmethod
+    def add_explosion(cls, pos, m_vec=None):
+        effect_group.add(Explosion(pos))
+
     def __init__(self, pos):
         super().__init__()
-        self.stored = pygame.image.load('Assets/explosion.png').convert_alpha()
+        self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/explosion.png').convert_alpha(), 0, 0.4)
         self.size = 0.1
         self.pos = pos
         self.image = pygame.transform.rotozoom(self.stored, 0, self.size)
-        self.rect = self.image.get_rect(center=pos)
+        self.rect = self.image.get_rect(midbottom=pos)
         self.opacity = 255
 
     def update(self):
         self.image = pygame.transform.rotozoom(self.stored, 0, self.size)
-        self.rect = self.image.get_rect(center=self.pos)
+        self.rect = self.image.get_rect(midbottom=self.pos)
         if self.size <= 1:
             self.size += 0.1
         else:

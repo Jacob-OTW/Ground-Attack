@@ -11,6 +11,7 @@ class Player(pygame.sprite.Sprite):
         self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32))
         self.image = self.stored
         self.rect = self.image.get_rect(left=0, top=SCREEN_HEIGHT / 8)
+        self.mask = pygame.mask.from_surface(self.image)
         self.pos = pygame.math.Vector2((self.rect.x, self.rect.y))
         self.going_right = True
         self.angle = 0
@@ -23,11 +24,14 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_SPACE]:
             self.shoot()
 
-    def shoot(self):
-        v = pygame.math.Vector2((40, -2.5 if self.going_right else 2.5)).rotate(self.angle)
+    def local_pos(self, offset):  # Returns x and y in reference to rotated center of object, used for fixed ports
+        v = pygame.math.Vector2(offset).rotate(self.angle)
         x = self.rect.centerx + v[0]
         y = self.rect.centery - v[1]
-        p = (x, y)
+        return x, y
+
+    def shoot(self):
+        p = self.local_pos((40, -2.5 if self.going_right else 2.5))
         projectile_group.add(Bullet(p, self.angle))
         Smoke.add_smoke(p, pygame.math.Vector2(-3, 0).rotate(self.angle))
 
