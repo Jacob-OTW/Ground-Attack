@@ -115,7 +115,7 @@ class Stinger(pygame.sprite.Sprite):
 
         # Collision
         if self.mask.overlap(self.target.mask, (self.target.rect.x - self.rect.x, self.target.rect.y - self.rect.y)):
-            Explosion.add_explosion(self.rect.center)
+            Explosion.add_explosion(self.rect.center, e_type='Air')
             if type(self.target) == flare_obj.Flare:
                 self.target.kill()
             self.kill()
