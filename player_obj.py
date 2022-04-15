@@ -17,12 +17,43 @@ class Player(pygame.sprite.Sprite):
         self.angle = 0
         self.speed = 4
         self.m = 0.0
+        self.v = 0
+
+        # Weapons
+        self.weapon = 'gun'
+        self.max_gun = 150
+        self.gun = self.max_gun
+        self.bomb = True
+        self.max_bomb = 120
+        self.bomb_timer = 120
+
+        # Countermeasure
+        self.max_flares = 15
+        self.flares = self.max_flares
+        self.flare_timer = 0
 
     def update(self):
         self.move()
+
+        # Shooting
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
-            self.shoot()
+            if self.weapon == 'gun' and self.gun > 0:
+                self.shoot()
+                self.gun -= 1
+        else:
+            self.gun = min(self.gun + 0.5, self.max_gun)
+        self.flare_timer += 1
+        # Flare timer
+        if self.flare_timer >= 60:
+            self.flares = min(self.flares+1, 15)
+            self.flare_timer = 0
+
+        # Bomb Timer
+        if not self.bomb:
+            self.bomb_timer = min(self.bomb_timer+1, self.max_bomb)
+            if self.bomb_timer >= self.max_bomb:
+                self.bomb = True
 
     def local_pos(self, offset):  # Returns x and y in reference to rotated center of object, used for fixed ports
         v = pygame.math.Vector2(offset).rotate(self.angle)
@@ -36,37 +67,27 @@ class Player(pygame.sprite.Sprite):
         Smoke.add_smoke(p, pygame.math.Vector2(-3, 0).rotate(self.angle))
 
     def move(self):
-        if self.going_right:
-            if self.rect.right >= SCREEN_WIDTH:
-                self.going_right = False
-                self.angle = 180
-                self.stored = pygame.transform.flip(
-                    pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32)), False,
-                    True)
-            self.pos += pygame.math.Vector2((2, 0))
-            d = dir_to(self.rect.center, pygame.mouse.get_pos())
-            if d < 80 or d > 280:
-                self.angle = d
-            else:
-                self.angle = 0
-            b = -2 * math.sin(math.radians(self.angle))
-            if not self.rect.top - b < 0:
-                self.pos[1] += b
+        # Turn
+        if self.rect.right >= SCREEN_WIDTH if self.going_right else self.rect.left <= 0:
+            self.going_right = not self.going_right
+            self.angle += 180
+            self.stored = pygame.transform.flip(
+                pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32)), False,
+                False if self.going_right else True)
+
+        # Move
+        b = pygame.math.Vector2((2, 0)).rotate(self.angle)[1]
+        self.v = 2 if self.going_right else -2, -b
+        self.pos += self.v
+
+        # Turn to mouse cursor
+        d = dir_to(self.rect.center, pygame.mouse.get_pos())
+        if d < 80 or d > 280 if self.going_right else 100 < d < 260:
+            self.angle = d
         else:
-            if self.rect.left <= 0:
-                self.going_right = True
-                self.angle = 0
-                self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(),
-                                                     (100, 32))
-            self.pos -= pygame.math.Vector2((2, 0))
-            a = dir_to(self.rect.center, pygame.mouse.get_pos())
-            if 100 < a < 260:
-                self.angle = a
-            else:
-                self.angle = 180
-            b = -2 * math.sin(math.radians(self.angle))
-            if not self.rect.top - b < 0:
-                self.pos[1] += b
+            self.angle = 0 if self.going_right else 180
+
+        # Update
         self.image = pygame.transform.rotate(self.stored, self.angle)
         self.rect = self.image.get_rect(center=self.pos)
 

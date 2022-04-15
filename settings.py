@@ -10,6 +10,8 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 SCORE = 0
 LIVES = 3
 
+score_font = pygame.font.SysFont("arial", 32, pygame.font.Font.bold)
+
 
 def dir_to(mp, tp):
     dx = tp[0] - mp[0]
