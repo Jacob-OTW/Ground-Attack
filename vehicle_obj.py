@@ -1,8 +1,7 @@
 import random
-import pygame
-
 import effects
 import flare_obj
+import player_obj
 import projectiles
 from projectiles import projectile_group
 from effects import effect_group, Explosion
@@ -45,10 +44,10 @@ class Tank(pygame.sprite.Sprite):
             self.rect.y += 5
 
 
-class Manpad(pygame.sprite.Sprite):
+class ManPad(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/Manpad/manpad.png').convert_alpha(),
+        self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/ManPad/ManPad.png').convert_alpha(),
                                                 0, 0.1)
         self.image = self.stored
         a = random.uniform(0 + self.image.get_width() / 2, SCREEN_WIDTH - self.image.get_width() / 2)
@@ -96,7 +95,7 @@ class Stinger(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
         self.pos = pygame.math.Vector2(pos)
-        self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/Manpad/stinger.png').convert_alpha(),
+        self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/ManPad/stinger.png').convert_alpha(),
                                                 0, 0.1)
         self.image = self.stored
         self.rect = self.image.get_rect(center=self.pos)
@@ -110,9 +109,9 @@ class Stinger(pygame.sprite.Sprite):
         # Lifespan
         self.lifespan = 500
 
-    def predicted_los(self):
+    def predicted_los(self, r=0):
         if self.target and self.target.alive():
-            t = dis_to(self.rect.center, self.target.rect.center) / self.speed
+            t = dis_to(self.rect.center, self.predicted_los(r=r + 1) if r <= 2 else self.target.rect.center) / 6
             return self.target.rect.centerx + (self.target.v[0] * int(t)), self.target.rect.centery + (
                     self.target.v[1] * int(t))
         return self.target.rect.center
@@ -126,8 +125,11 @@ class Stinger(pygame.sprite.Sprite):
         # Collision
         if self.mask.overlap(self.target.mask, (self.target.rect.x - self.rect.x, self.target.rect.y - self.rect.y)):
             Explosion.add_explosion(self.rect.center, e_type='Air')
-            if type(self.target) == flare_obj.Flare:
-                self.target.kill()
+            match type(self.target):
+                case flare_obj.Flare:
+                    self.target.kill()
+                case player_obj.Player:
+                    self.target.health -= 15
             self.kill()
 
         # Delete
@@ -151,17 +153,20 @@ class AAA(pygame.sprite.Sprite):
         super().__init__()
         self.size = 0.5
 
-        self.image = pygame.Surface((200*self.size, 170*self.size), pygame.SRCALPHA, 32)
+        self.image = pygame.Surface((200 * self.size, 170 * self.size), pygame.SRCALPHA, 32)
         a = random.uniform(0 + self.image.get_width() / 2, SCREEN_WIDTH - self.image.get_width() / 2)
         self.rect = self.image.get_rect(centerx=a)
 
         # Images
-        self.body = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/AAA/body.png').convert_alpha(), 0, self.size)
-        self.body_rect = self.body.get_rect(midbottom=(100*self.size, 170*self.size))
-        self.turret = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/AAA/turret.png').convert_alpha(), 0, self.size)
-        self.turret_rect = self.turret.get_rect(midbottom=(100*self.size, 170*self.size))
-        self.barrel = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/AAA/barrel.png').convert_alpha(), 0, self.size)
-        self.barrel_rect = self.barrel.get_rect(center=(100*self.size, 105*self.size))
+        self.body = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/AAA/body.png').convert_alpha(), 0,
+                                              self.size)
+        self.body_rect = self.body.get_rect(midbottom=(100 * self.size, 170 * self.size))
+        self.turret = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/AAA/turret.png').convert_alpha(), 0,
+                                                self.size)
+        self.turret_rect = self.turret.get_rect(midbottom=(100 * self.size, 170 * self.size))
+        self.barrel = pygame.transform.rotozoom(pygame.image.load('Assets/Vehicles/AAA/barrel.png').convert_alpha(), 0,
+                                                self.size)
+        self.barrel_rect = self.barrel.get_rect(center=(100 * self.size, 105 * self.size))
 
         self.mask = pygame.mask.from_surface(self.image)
         self.angle = 0
@@ -172,9 +177,9 @@ class AAA(pygame.sprite.Sprite):
         self.bullets = 15
         self.timer = 0
 
-    def predicted_los(self):
+    def predicted_los(self, r=0):
         if self.target and self.target.alive():
-            t = dis_to(self.rect.center, self.target.rect.center) / 6
+            t = dis_to(self.rect.center, self.predicted_los(r=r + 1) if r <= 2 else self.target.rect.center) / 6
             return self.target.rect.centerx + (self.target.v[0] * int(t)), self.target.rect.centery + (
                     self.target.v[1] * int(t))
         return self.target.rect.center
@@ -198,7 +203,7 @@ class AAA(pygame.sprite.Sprite):
             self.timer += 1
             if self.timer >= 240:
                 if self.bullets > 0:
-                    enemy_projectile_group.add(Enemy_bullet(self.rect.center, self.angle))
+                    enemy_projectile_group.add(EnemyBullet(self.rect.center, self.angle))
                     self.bullets -= 1
                 else:
                     self.bullets = 15
@@ -226,7 +231,8 @@ class AAA(pygame.sprite.Sprite):
 
             # Die
             if self.health <= 0:
-                self.image = pygame.transform.rotozoom(pygame.image.load(f'Assets/Vehicles/AAA/broken.png'), 0, self.size)
+                self.image = pygame.transform.rotozoom(pygame.image.load(f'Assets/Vehicles/AAA/broken.png'), 0,
+                                                       self.size)
                 self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
 
         # Fall
@@ -234,7 +240,7 @@ class AAA(pygame.sprite.Sprite):
             self.rect.y += 5
 
 
-class Enemy_bullet(pygame.sprite.Sprite):
+class EnemyBullet(pygame.sprite.Sprite):
     def __init__(self, pos, angle):
         super().__init__()
         self.pos = pygame.math.Vector2(pos)
@@ -257,12 +263,18 @@ class Enemy_bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.pos)
         self.mask = pygame.mask.from_surface(self.image)
 
+        # Collide
+        if self.mask.overlap(play.mask, (play.rect.x - self.rect.x, play.rect.y - self.rect.y)):
+            Explosion.add_explosion(self.rect.center, e_type='Air', size=0.1)
+            play.health -= 1
+            self.kill()
+
 
 vehicle_group = pygame.sprite.Group()
 enemy_projectile_group = pygame.sprite.Group()
 for h in range(1):
     vehicle_group.add(AAA())
 for j in range(1):
-    vehicle_group.add(Manpad())
+    vehicle_group.add(ManPad())
 for i in range(1):
     vehicle_group.add(Tank())

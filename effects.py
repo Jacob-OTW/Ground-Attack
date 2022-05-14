@@ -5,17 +5,17 @@ from settings import *
 
 class Explosion(pygame.sprite.Sprite):
     @classmethod
-    def add_explosion(cls, pos, m_vec=None, e_type='Ground'):
-        effect_group.add(Explosion(pos, e_type=e_type))
+    def add_explosion(cls, pos, m_vec=None, e_type='Ground', size=1.0):
+        effect_group.add(Explosion(pos, e_type=e_type, size=size))
 
-    def __init__(self, pos, e_type='Ground'):
+    def __init__(self, pos, e_type='Ground', size=1.0):
         super().__init__()
         self.e_type = e_type
         match self.e_type:
             case 'Ground':
-                self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/explosion.png').convert_alpha(), 0, 0.4)
+                self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/explosion.png').convert_alpha(), 0, 0.4 * size)
             case 'Air':
-                self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/explosion_air.png').convert_alpha(), 0, 0.8)
+                self.stored = pygame.transform.rotozoom(pygame.image.load('Assets/explosion_air.png').convert_alpha(), 0, 0.8 * size)
         self.size = 0.1
         self.pos = pos
         self.image = pygame.transform.rotozoom(self.stored, 0, self.size)

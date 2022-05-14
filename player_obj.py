@@ -3,21 +3,29 @@ import math
 from settings import *
 from effects import Smoke
 from projectiles import projectile_group, Bullet
+from pilot_obj import Pilot, pilot_group
 
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        # Image and mask
         self.stored = pygame.transform.scale(pygame.image.load('Assets/plane.png.png').convert_alpha(), (100, 32))
         self.image = self.stored
         self.rect = self.image.get_rect(left=0, top=SCREEN_HEIGHT / 8)
         self.mask = pygame.mask.from_surface(self.image)
+
+        # Movement
         self.pos = pygame.math.Vector2((self.rect.x, self.rect.y))
         self.going_right = True
         self.angle = 0
         self.speed = 4
         self.m = 0.0
         self.v = 0
+
+        # Health
+        self.health = 100
+        self.pilot = True
 
         # Weapons
         self.weapon = 'gun'
@@ -33,8 +41,42 @@ class Player(pygame.sprite.Sprite):
         self.flare_timer = 0
 
     def update(self):
-        self.move()
+        if self.health > 0:
+            self.move()
+            self.keybinds()
+            self.timers()
+        else:
+            if self.pilot:
+                self.pilot = False
+                pilot_group.add(Pilot(self.rect.center))
+            self.angle = -80 if self.going_right else 260
+            self.v = pygame.math.Vector2((4, 0)).rotate(self.angle)
+            self.pos[0] += self.v[0]
+            self.pos[1] -= self.v[1]
 
+        self.image = pygame.transform.rotate(self.stored, self.angle)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect(center=self.pos)
+
+    def local_pos(self, offset):  # Returns x and y in reference to rotated center of object, used for fixed ports
+        v = pygame.math.Vector2(offset).rotate(self.angle)
+        x = self.rect.centerx + v[0]
+        y = self.rect.centery - v[1]
+        return x, y
+
+    def timers(self):
+        # Flare timer
+        if self.flare_timer >= 60:
+            self.flares = min(self.flares + 1, 15)
+            self.flare_timer = 0
+
+        # Bomb Timer
+        if not self.bomb:
+            self.bomb_timer = min(self.bomb_timer + 1, self.max_bomb)
+            if self.bomb_timer >= self.max_bomb:
+                self.bomb = True
+
+    def keybinds(self):
         # Shooting
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -44,22 +86,6 @@ class Player(pygame.sprite.Sprite):
         else:
             self.gun = min(self.gun + 0.5, self.max_gun)
         self.flare_timer += 1
-        # Flare timer
-        if self.flare_timer >= 60:
-            self.flares = min(self.flares+1, 15)
-            self.flare_timer = 0
-
-        # Bomb Timer
-        if not self.bomb:
-            self.bomb_timer = min(self.bomb_timer+1, self.max_bomb)
-            if self.bomb_timer >= self.max_bomb:
-                self.bomb = True
-
-    def local_pos(self, offset):  # Returns x and y in reference to rotated center of object, used for fixed ports
-        v = pygame.math.Vector2(offset).rotate(self.angle)
-        x = self.rect.centerx + v[0]
-        y = self.rect.centery - v[1]
-        return x, y
 
     def shoot(self):
         p = self.local_pos((40, -2.5 if self.going_right else 2.5))
@@ -86,10 +112,6 @@ class Player(pygame.sprite.Sprite):
             self.angle = d
         else:
             self.angle = 0 if self.going_right else 180
-
-        # Update
-        self.image = pygame.transform.rotate(self.stored, self.angle)
-        self.rect = self.image.get_rect(center=self.pos)
 
 
 player_group = pygame.sprite.GroupSingle()

@@ -6,6 +6,7 @@ import math
 from settings import *
 
 from player_obj import player_group, play
+from pilot_obj import pilot_group
 from flare_obj import flare_group, Flare
 from projectiles import projectile_group, Bomb
 from vehicle_obj import vehicle_group, enemy_projectile_group
@@ -43,6 +44,7 @@ def main():
         last_time = time.time()
         # Update
         player_group.update()
+        pilot_group.update()
         projectile_group.update()
         enemy_projectile_group.update()
         vehicle_group.update()
@@ -59,11 +61,12 @@ def main():
         enemy_projectile_group.draw(screen)
         vehicle_group.draw(screen)
         player_group.draw(screen)
+        pilot_group.draw(screen)
         flare_group.draw(screen)
         effect_group.draw(screen)
         smoke_group.draw(screen)
 
-        text2 = score_font.render(f"{round(frame_time * 1000)}ms {play.bomb_timer} {play.bomb}", True, (255, 255, 255))
+        text2 = score_font.render(f"{round(frame_time * 1000)}ms {play.health}", True, (255, 255, 255))
         screen.blit(text2, (100, 150))
 
         # Refresh
