@@ -23,3 +23,7 @@ def dir_to(mp, tp):
 
 def dis_to(mp, tp):
     return math.hypot(mp[0] - tp[0], mp[1] - tp[1])
+
+
+def dif_between(x, y):
+    return abs(x - y) if x > y else abs(y - x)

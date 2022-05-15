@@ -116,6 +116,12 @@ class Stinger(pygame.sprite.Sprite):
                     self.target.v[1] * int(t))
         return self.target.rect.center
 
+    def face_to(self, ang):
+        angle = dir_to(self.rect.center, ang)
+        self.angle += math.sin(math.radians(angle - self.angle)) * 2.5
+        if abs(((self.angle - angle) + 180) % 360 - 180) > 70:
+            self.target = None
+
     def update(self):
         # Lifespan
         self.lifespan -= 1
@@ -123,7 +129,7 @@ class Stinger(pygame.sprite.Sprite):
             self.kill()
 
         # Collision
-        if self.mask.overlap(self.target.mask, (self.target.rect.x - self.rect.x, self.target.rect.y - self.rect.y)):
+        if self.target and self.mask.overlap(self.target.mask, (self.target.rect.x - self.rect.x, self.target.rect.y - self.rect.y)):
             Explosion.add_explosion(self.rect.center, e_type='Air')
             match type(self.target):
                 case flare_obj.Flare:
@@ -137,7 +143,8 @@ class Stinger(pygame.sprite.Sprite):
             self.kill()
 
         # Track
-        self.angle = dir_to(self.rect.center, self.predicted_los())
+        if self.target:
+            self.face_to(self.predicted_los())
         v = pygame.math.Vector2((self.speed, 0)).rotate(self.angle)
         self.pos[0] += v[0]
         self.pos[1] -= v[1]
@@ -272,7 +279,7 @@ class EnemyBullet(pygame.sprite.Sprite):
 
 vehicle_group = pygame.sprite.Group()
 enemy_projectile_group = pygame.sprite.Group()
-for h in range(1):
+for h in range(0):
     vehicle_group.add(AAA())
 for j in range(1):
     vehicle_group.add(ManPad())
